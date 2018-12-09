@@ -70,10 +70,26 @@ public class DisplayInfo extends AppCompatActivity {
             MusixMatch musicCaller = new MusixMatch(API_code);
             try {
                 Track searchResults = musicCaller.getMatchingTrack(strings[0],strings[1]);
-                publishProgress(searchResults.getTrack().getTrackName(), searchResults.getTrack().getArtistName());
                 Lyrics l = musicCaller.getLyrics(searchResults.getTrack().getTrackId());
-                return l.getLyricsBody();
-            } catch (MusixMatchException e) {
+
+                publishProgress(searchResults.getTrack().getTrackName(), searchResults.getTrack().getArtistName(),l.getLyricsBody());
+
+                IamOptions options = new IamOptions.Builder()
+                        .apiKey("ZWE1fkMnnTf6KhEiorTfyAWHZ21iCSgAJVU741-zzVra")
+                        .build();
+                ToneAnalyzer toneAnalyzer = new ToneAnalyzer("2017-09-21", options);
+                toneAnalyzer.setEndPoint("https://gateway.watsonplatform.net/tone-analyzer/api");
+
+
+                ToneOptions toneOptions = new ToneOptions.Builder()
+                        .text(l.getLyricsBody())
+                        .build();
+
+                ToneAnalysis toneAnalysis = toneAnalyzer.tone(toneOptions).execute();
+
+                return toneAnalysis;
+
+            } catch (Exception e) {
                 return e;
             }
         }
@@ -83,21 +99,67 @@ public class DisplayInfo extends AppCompatActivity {
             super.onProgressUpdate(values);
             TextView Title = findViewById(R.id.Title);
             Title.setText(values[0]);
+
             TextView Artist = findViewById(R.id.artist_subtitle);
             Artist.setText(values[1]);
+            Artist.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+
+            TextView mood = findViewById(R.id.Mood_Title);
+            mood.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+            mood.setText("Loading Lyrics and Mood Data...");
+            lyrics = values[2];
         }
 
         @Override
-        protected void onPostExecute(Object tracks) {
-            super.onPostExecute(tracks);
-            if (tracks instanceof Error) {
-                //Add Error Handling
+        protected void onPostExecute(Object mood) {
+            super.onPostExecute(mood);
+            if (mood instanceof Exception) {
+                if (mood instanceof MusixMatchException) {
+                    TextView Title = findViewById(R.id.Title);
+                    Title.setText("Unable to Find Song");
+                    return;
+                }
             }
-            String l = (String) tracks;
-            lyrics = l;
+            TextView mood_line = findViewById(R.id.Mood_Title);
+            mood_line.setText("Mood:");
+            parsePrintJson(mood.toString());
+            addToLinearLayout("Lyrics:", 18);
+            addToLinearLayout(lyrics, 18);
             //new SentimentSearch().execute(l);
         }
+        public void addToLinearLayout(String text, int size) {
+            TextView mainText = new TextView(DisplayInfo.this);
+            mainText.setTextSize(size);
+            mainText.setText(text);
+            mainText.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
+            layout.addView(mainText);
+        }
+
+        public void parsePrintJson(String json) {
+            if (json.contains("\"sentences_tone\"")) {
+                json = json.substring(0, json.indexOf("\"sentences_tone\""));
+            }
+            // HashMap<String, Integer> moods = new HashMap<String, Integer>();
+            int count = StringUtils.countMatches(json, "score");
+            if (count == 0) {
+                addToLinearLayout("No Moods were detected", 18);
+            }
+            for (int x = 0; x < count; x++ ) {
+                String str = json.substring(json.indexOf("\"score\""), json.indexOf("}"));
+                String scoreStr = str.substring(9, str.indexOf(","));
+                str = json.substring(json.indexOf("\"tone_name\"") + 14);
+                String toneStr = str.substring(0, str.indexOf("\""));
+                json = json.substring(json.indexOf("},") + 2);
+
+                int score = (int) (100* Double.parseDouble(scoreStr));
+                //moods.put(toneStr,score);
+                addToLinearLayout(toneStr + " --> " + score + " %", 18);
+            }
+            // return moods;
+        }
     }
+
+    /**
     private class SentimentSearch extends AsyncTask<String, Integer, Object> {
         @Override
         protected Object doInBackground(String... strings) {
@@ -134,33 +196,6 @@ public class DisplayInfo extends AppCompatActivity {
             addToLinearLayout(lyrics, 12);
         }
     }
-
-    public void addToLinearLayout(String text, int size) {
-        TextView mainText = new TextView(DisplayInfo.this);
-        mainText.setTextSize(size);
-        mainText.setText(text);
-        mainText.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
-        layout.addView(mainText);
-    }
-
-    public void parsePrintJson(String json) {
-        if (json.contains("\"sentences_tone\"")) {
-            json = json.substring(0, json.indexOf("\"sentences_tone\""));
-        }
-       // HashMap<String, Integer> moods = new HashMap<String, Integer>();
-        int count = StringUtils.countMatches(json, "score");
-        for (int x = 0; x < count; x++ ) {
-            String str = json.substring(json.indexOf("\"score\""), json.indexOf("}"));
-            String scoreStr = str.substring(9, str.indexOf(","));
-            str = json.substring(json.indexOf("\"tone_name\"") + 14);
-            String toneStr = str.substring(0, str.indexOf("\""));
-            json = json.substring(json.indexOf("},") + 2);
-
-            //int score = (int) (100* Double.parseDouble(scoreStr));
-            //moods.put(toneStr,score);
-            addToLinearLayout(toneStr + " --> " + scoreStr, 14);
-        }
-       // return moods;
-    }
+*/
 
 }
