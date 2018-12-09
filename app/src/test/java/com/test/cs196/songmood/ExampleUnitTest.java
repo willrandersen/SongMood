@@ -1,4 +1,4 @@
-package com.songmood.cs125.songmood;
+package com.test.cs196.songmood;
 
 import org.junit.Test;
 

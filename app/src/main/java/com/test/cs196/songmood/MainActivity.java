@@ -1,4 +1,4 @@
-package com.songmood.cs125.songmood;
+package com.test.cs196.songmood;
 
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -9,22 +9,19 @@ import android.widget.EditText;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText song_search;
-    Button submit;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        song_search = (EditText)(findViewById(R.id.song_search));
-        submit = (Button)(findViewById(R.id.button));
+        final EditText artist = findViewById(R.id.artist);
+        final EditText song = findViewById(R.id.song_search);
+        Button search = findViewById(R.id.search);
 
-        submit.setOnClickListener(new View.OnClickListener() {
+        search.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view) {
-                Intent intent = SearchResults.createIntent(MainActivity.this, song_search.getText().toString());
+            public void onClick(View v) {
+                Intent intent = DisplayInfo.createIntent(MainActivity.this, song.getText().toString(),artist.getText().toString());
                 startActivity(intent);
             }
         });

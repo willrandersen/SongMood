@@ -1,4 +1,4 @@
-package com.songmood.cs125.songmood;
+package com.test.cs196.songmood;
 
 import android.content.Context;
 import android.support.test.InstrumentationRegistry;
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("com.songmood.cs125.songmood", appContext.getPackageName());
+        assertEquals("com.test.cs196.songmood", appContext.getPackageName());
     }
 }
